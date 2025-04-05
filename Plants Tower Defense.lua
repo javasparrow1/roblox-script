@@ -70,11 +70,19 @@ main:Button("FlowerPot Spawn(500)", function()
 end)
 
 main:Button("Wave Skip", function()
+    local players = #game:GetService("Players"):GetPlayers()
     local timerText = game:GetService("Players").LocalPlayer.PlayerGui.GameGUI.Timer.Text
     if timerText ~= "00:00" then
         local args = {
             [1] = "Skip"
         }
-        game:GetService("ReplicatedStorage").Events.VoteSkipEvent:FireServer(unpack(args))
+        if players >= 3 then
+
+            game:GetService("ReplicatedStorage").Events.VoteSkipEvent:FireServer(unpack(args))
+            wait(0.01)
+            game:GetService("ReplicatedStorage").Events.VoteSkipEvent:FireServer(unpack(args))
+        else
+            game:GetService("ReplicatedStorage").Events.VoteSkipEvent:FireServer(unpack(args))
+        end
     end
 end)

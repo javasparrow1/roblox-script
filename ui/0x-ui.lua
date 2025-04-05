@@ -106,6 +106,17 @@ b.UserInputService.InputBegan:Connect(
         end
     end
 )
+
+local function AdjustTextSize(obj)
+    obj:GetPropertyChangedSignal("Text"):Connect(function()
+        if #obj.Text > 30 then
+            obj.TextSize = 10
+        else
+            obj.TextSize = 14
+        end
+    end)
+end
+
 function a:Window(w)
     local x = false
     a.windowCount = a.windowCount + 1
@@ -150,8 +161,10 @@ function a:Window(w)
     B.Font = Enum.Font.GothamSemibold
     B.Text = "   " .. tostring(w) or ""
     B.TextColor3 = Color3.fromRGB(255, 255, 255)
-    B.TextSize = 14.000
+    B.TextScaled = true
+    B.TextSize = 14
     B.TextXAlignment = Enum.TextXAlignment.Left
+    AdjustTextSize(B)
     C.Name = "WindowToggle"
     C.Parent = y
     C.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
@@ -234,7 +247,9 @@ function a:Window(w)
         M.Font = Enum.Font.GothamSemibold
         M.Text = tostring(L) or ""
         M.TextColor3 = Color3.fromRGB(255, 255, 255)
-        M.TextSize = 14.000
+        M.TextScaled = true
+        M.TextSize = 14
+        AdjustTextSize(M)
         return M
     end
     function K:Button(L, N)
@@ -257,8 +272,10 @@ function a:Window(w)
         P.Font = Enum.Font.Gotham
         P.Text = "  " .. tostring(L) or ""
         P.TextColor3 = Color3.fromRGB(255, 255, 255)
-        P.TextSize = 14.000
+        P.TextScaled = true
+        P.TextSize = 14 -- デフォルトサイズを保持
         P.TextXAlignment = Enum.TextXAlignment.Left
+        AdjustTextSize(P)
         P.MouseEnter:Connect(
             function()
                 b.TweenService:Create(
@@ -314,8 +331,10 @@ function a:Window(w)
         V.Font = Enum.Font.Gotham
         V.Text = "  " .. tostring(Q) or ""
         V.TextColor3 = Color3.fromRGB(255, 255, 255)
-        V.TextSize = 14.000
+        V.TextScaled = true
+        V.TextSize = 14 -- デフォルトサイズを保持
         V.TextXAlignment = Enum.TextXAlignment.Left
+        AdjustTextSize(V)
         W.Name = "ToggleStatus"
         W.Parent = U
         W.AnchorPoint = Vector2.new(0, 0.5)
@@ -399,8 +418,10 @@ function a:Window(w)
         a5.Font = Enum.Font.Gotham
         a5.Text = "  " .. tostring(Y) or ""
         a5.TextColor3 = Color3.fromRGB(255, 255, 255)
-        a5.TextSize = 14.000
+        a5.TextScaled = true
+        a5.TextSize = 14
         a5.TextXAlignment = Enum.TextXAlignment.Left
+        AdjustTextSize(a5)
         a6.Name = "SliderBack"
         a6.Parent = a4
         a6.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
@@ -428,7 +449,9 @@ function a:Window(w)
         aa.Font = Enum.Font.Code
         aa.Text = S or a1
         aa.TextColor3 = Color3.fromRGB(255, 255, 255)
-        aa.TextSize = 14.000
+        aa.TextScaled = true
+        aa.TextSize = 14
+        AdjustTextSize(aa)
         if S and S ~= a1 then
             N(S)
         end

@@ -1,4 +1,3 @@
-print("a")
 local a = {windowCount = 0, flags = {}}
 local b = {}
 setmetatable(
@@ -12,6 +11,8 @@ setmetatable(
 )
 local g
 local h = b.Players.LocalPlayer:GetMouse()
+local isMobile = b.UserInputService.TouchEnabled and not b.UserInputService.KeyboardEnabled
+
 function Drag(i, j)
     if g then
         g.ZIndex = -2
@@ -31,7 +32,7 @@ function Drag(i, j)
     end
     j.InputBegan:Connect(
         function(p)
-            if p.UserInputType == Enum.UserInputType.MouseButton1 then
+            if p.UserInputType == Enum.UserInputType.MouseButton1 or p.UserInputType == Enum.UserInputType.Touch then
                 k = true
                 m = p.Position
                 n = i.Position
@@ -47,7 +48,7 @@ function Drag(i, j)
     )
     i.InputChanged:Connect(
         function(p)
-            if p.UserInputType == Enum.UserInputType.MouseMovement then
+            if p.UserInputType == Enum.UserInputType.MouseMovement or p.UserInputType == Enum.UserInputType.Touch then
                 l = p
             end
         end
@@ -60,6 +61,7 @@ function Drag(i, j)
         end
     )
 end
+
 function ClickEffect(r)
     spawn(
         function()
@@ -97,6 +99,7 @@ function ClickEffect(r)
         end
     )
 end
+
 local t = Instance.new("ScreenGui")
 t.Name = b.HttpService:GenerateGUID()
 t.Parent = b.RunService:IsStudio() and b.Players.LocalPlayer:WaitForChild("PlayerGui") or b.CoreGui
@@ -107,16 +110,6 @@ b.UserInputService.InputBegan:Connect(
         end
     end
 )
-
-local function AdjustTextSize(obj)
-    obj:GetPropertyChangedSignal("Text"):Connect(function()
-        if #obj.Text > 30 then
-            obj.TextSize = 10
-        else
-            obj.TextSize = 14
-        end
-    end)
-end
 
 function a:Window(w)
     local x = false
@@ -134,15 +127,19 @@ function a:Window(w)
     y.Parent = t
     y.BackgroundColor3 = Color3.fromRGB(43, 43, 43)
     y.BorderSizePixel = 0
-    y.Position = UDim2.new(0, 25, 0, -30 + 36 * a.windowCount + 6 * a.windowCount)
-    y.Size = UDim2.new(0, 212, 0, 36)
+    -- スマホの場合、サイズを小さくする
+    local scaleFactor = isMobile and 0.75 or 1
+    local windowWidth = 212 * scaleFactor
+    local windowHeight = 36 * scaleFactor
+    y.Position = UDim2.new(0, 25 + (windowWidth + 10) * (a.windowCount - 1), 0, 25)
+    y.Size = UDim2.new(0, windowWidth, 0, windowHeight)
     Drag(y)
     z.Name = "WindowLine"
     z.Parent = y
     z.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     z.BorderSizePixel = 0
-    z.Position = UDim2.new(0, 0, 0, 34)
-    z.Size = UDim2.new(0, 212, 0, 2)
+    z.Position = UDim2.new(0, 0, 0, windowHeight - 2)
+    z.Size = UDim2.new(0, windowWidth, 0, 2)
     A.Color =
         ColorSequence.new {
         ColorSequenceKeypoint.new(0.00, Color3.fromRGB(43, 43, 43)),
@@ -158,25 +155,23 @@ function a:Window(w)
     B.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     B.BackgroundTransparency = 1.000
     B.BorderSizePixel = 0
-    B.Size = UDim2.new(0, 54, 0, 34)
+    B.Size = UDim2.new(0, 54 * scaleFactor, 0, windowHeight)
     B.Font = Enum.Font.GothamSemibold
     B.Text = "   " .. tostring(w) or ""
     B.TextColor3 = Color3.fromRGB(255, 255, 255)
-    B.TextScaled = true
-    B.TextSize = 14
+    B.TextSize = 14 * scaleFactor
     B.TextXAlignment = Enum.TextXAlignment.Left
-    AdjustTextSize(B)
     C.Name = "WindowToggle"
     C.Parent = y
     C.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     C.BackgroundTransparency = 1.000
     C.BorderSizePixel = 0
     C.Position = UDim2.new(0.835270762, 0, 0, 0)
-    C.Size = UDim2.new(0, 34, 0, 34)
+    C.Size = UDim2.new(0, 34 * scaleFactor, 0, windowHeight)
     C.Font = Enum.Font.SourceSans
     C.Text = ""
     C.TextColor3 = Color3.fromRGB(0, 0, 0)
-    C.TextSize = 14.000
+    C.TextSize = 14 * scaleFactor
     D.Name = "WindowToggleImg"
     D.Parent = C
     D.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -184,7 +179,7 @@ function a:Window(w)
     D.BackgroundTransparency = 1.000
     D.BorderSizePixel = 0
     D.Position = UDim2.new(0.5, 0, 0.5, 0)
-    D.Size = UDim2.new(0, 18, 0, 18)
+    D.Size = UDim2.new(0, 18 * scaleFactor, 0, 18 * scaleFactor)
     D.Image = "rbxassetid://3926305904"
     D.ImageRectOffset = Vector2.new(524, 764)
     D.ImageRectSize = Vector2.new(36, 36)
@@ -195,18 +190,18 @@ function a:Window(w)
     E.BorderSizePixel = 0
     E.ClipsDescendants = true
     E.Position = UDim2.new(0, 0, 1, 0)
-    E.Size = UDim2.new(0, 212, 0, 0)
+    E.Size = UDim2.new(0, windowWidth, 0, 0)
     F.Name = "BottomLayout"
     F.Parent = E
     F.HorizontalAlignment = Enum.HorizontalAlignment.Center
     F.SortOrder = Enum.SortOrder.LayoutOrder
-    F.Padding = UDim.new(0, 4)
+    F.Padding = UDim.new(0, 4 * scaleFactor)
     G.Name = "PaddingThing"
     G.Parent = E
     G.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     G.BorderSizePixel = 0
     G.Position = UDim2.new(0.263033181, 0, 0, 0)
-    G.Size = UDim2.new(0, 100, 0, 0)
+    G.Size = UDim2.new(0, 100 * scaleFactor, 0, 0)
     local H = false
     local function I()
         if H then
@@ -217,7 +212,7 @@ function a:Window(w)
         b.TweenService:Create(
             E,
             TweenInfo.new(0.25, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut),
-            {Size = UDim2.new(0, 212, 0, x and F.AbsoluteContentSize.Y + 4 or 0)}
+            {Size = UDim2.new(0, windowWidth, 0, x and F.AbsoluteContentSize.Y + 4 * scaleFactor or 0)}
         ):Play()
         b.TweenService:Create(
             D,
@@ -231,7 +226,7 @@ function a:Window(w)
         if H or not x then
             return
         end
-        E.Size.Y.Offset = F.AbsoluteContentSize.Y + 4
+        E.Size.Y.Offset = F.AbsoluteContentSize.Y + 4 * scaleFactor
     end
     F:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(J)
     C.MouseButton1Click:Connect(I)
@@ -243,14 +238,12 @@ function a:Window(w)
         M.BackgroundColor3 = Color3.fromRGB(43, 43, 43)
         M.BorderSizePixel = 0
         M.Position = UDim2.new(0.0212264154, 0, 0.71676302, 0)
-        M.Size = UDim2.new(0, 203, 0, 26)
+        M.Size = UDim2.new(0, 203 * scaleFactor, 0, 26 * scaleFactor)
         M.AutoButtonColor = false
         M.Font = Enum.Font.GothamSemibold
         M.Text = tostring(L) or ""
         M.TextColor3 = Color3.fromRGB(255, 255, 255)
-        M.TextScaled = true
-        M.TextSize = 14
-        AdjustTextSize(M)
+        M.TextSize = 14 * scaleFactor
         return M
     end
     function K:Button(L, N)
@@ -263,20 +256,18 @@ function a:Window(w)
         O.BackgroundColor3 = Color3.fromRGB(43, 43, 43)
         O.BorderSizePixel = 0
         O.Position = UDim2.new(0, 0, 0.0172413792, 0)
-        O.Size = UDim2.new(0, 203, 0, 36)
+        O.Size = UDim2.new(0, 203 * scaleFactor, 0, 36 * scaleFactor)
         P.Name = "Button"
         P.Parent = O
         P.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
         P.BackgroundTransparency = 1.000
         P.BorderSizePixel = 0
-        P.Size = UDim2.new(0, 203, 0, 36)
+        P.Size = UDim2.new(0, 203 * scaleFactor, 0, 36 * scaleFactor)
         P.Font = Enum.Font.Gotham
         P.Text = "  " .. tostring(L) or ""
         P.TextColor3 = Color3.fromRGB(255, 255, 255)
-        P.TextScaled = true
-        P.TextSize = 14 -- デフォルトサイズを保持
+        P.TextSize = 12 * scaleFactor
         P.TextXAlignment = Enum.TextXAlignment.Left
-        AdjustTextSize(P)
         P.MouseEnter:Connect(
             function()
                 b.TweenService:Create(
@@ -332,10 +323,8 @@ function a:Window(w)
         V.Font = Enum.Font.Gotham
         V.Text = "  " .. tostring(Q) or ""
         V.TextColor3 = Color3.fromRGB(255, 255, 255)
-        V.TextScaled = true
-        V.TextSize = 14 -- デフォルトサイズを保持
+        V.TextSize = 14.000
         V.TextXAlignment = Enum.TextXAlignment.Left
-        AdjustTextSize(V)
         W.Name = "ToggleStatus"
         W.Parent = U
         W.AnchorPoint = Vector2.new(0, 0.5)
@@ -419,10 +408,8 @@ function a:Window(w)
         a5.Font = Enum.Font.Gotham
         a5.Text = "  " .. tostring(Y) or ""
         a5.TextColor3 = Color3.fromRGB(255, 255, 255)
-        a5.TextScaled = true
-        a5.TextSize = 14
+        a5.TextSize = 14.000
         a5.TextXAlignment = Enum.TextXAlignment.Left
-        AdjustTextSize(a5)
         a6.Name = "SliderBack"
         a6.Parent = a4
         a6.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
@@ -450,9 +437,7 @@ function a:Window(w)
         aa.Font = Enum.Font.Code
         aa.Text = S or a1
         aa.TextColor3 = Color3.fromRGB(255, 255, 255)
-        aa.TextScaled = true
-        aa.TextSize = 14
-        AdjustTextSize(aa)
+        aa.TextSize = 14.000
         if S and S ~= a1 then
             N(S)
         end
@@ -507,4 +492,5 @@ function a:Window(w)
     end
     return K
 end
+
 return a

@@ -16,6 +16,10 @@ lobby:Button("Get all plants", function()
         "SunShroom",
         "Sunflower",
         "TwinSunflower",
+        "BonkChoy",
+        "Endurian",
+        "IcebergLettuce",
+        "ExplodeONut",
         "WallNut"
     }
 
@@ -86,3 +90,6 @@ main:Button("Wave Skip", function()
         end
     end
 end)
+
+
+

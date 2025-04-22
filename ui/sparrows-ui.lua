@@ -2,6 +2,7 @@ local Library = {}
 
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
+local GuiService = game:GetService("GuiService")
 
 local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 
@@ -33,16 +34,38 @@ local function ensureCoreGui()
         coreGui.Name = "SparrowUILibraryCoreGui"
         coreGui.ResetOnSpawn = false
         coreGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-        coreGui.Parent = game:GetService("CoreGui")
+        coreGui.DisplayOrder = 999
+        
+        if game:GetService("RunService"):IsStudio() then
+            coreGui.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
+        else
+            coreGui.Parent = game:GetService("CoreGui")
+        end
     end
+end
+
+local function isMobile()
+    return UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled and not UserInputService.MouseEnabled
 end
 
 local function makeElementDraggable(element, handle)
     local dragging = false
     local dragInput, dragStart, startPos
+    
+    local function updateDrag(input)
+        if dragging then
+            local delta = input.Position - dragStart
+            element.Position = UDim2.new(
+                startPos.X.Scale, 
+                startPos.X.Offset + delta.X, 
+                startPos.Y.Scale, 
+                startPos.Y.Offset + delta.Y
+            )
+        end
+    end
 
     handle.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
             dragging = true
             dragStart = input.Position
             startPos = element.Position
@@ -55,21 +78,15 @@ local function makeElementDraggable(element, handle)
         end
     end)
 
-    element.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement then
+    handle.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
             dragInput = input
         end
     end)
 
     UserInputService.InputChanged:Connect(function(input)
         if input == dragInput and dragging then
-            local delta = input.Position - dragStart
-            element.Position = UDim2.new(
-                startPos.X.Scale, 
-                startPos.X.Offset + delta.X, 
-                startPos.Y.Scale, 
-                startPos.Y.Offset + delta.Y
-            )
+            updateDrag(input)
         end
     end)
 end
@@ -79,27 +96,42 @@ function Library:CreateWindow(config)
 
     config = config or {}
     local title = config.Title or "Sparrow UI"
-    local size = config.Size or UDim2.new(0, 400, 0, 320)
     
-    local isMinimized = false
+    local isMobileDevice = isMobile()
+    local safeAreaInsets = GuiService:GetGuiInset()
+    
+    local defaultSize
+    if isMobileDevice then
+        defaultSize = UDim2.new(0, 280, 0, 320)
+    else
+        defaultSize = UDim2.new(0, 400, 0, 320)
+    end
+    
+    local size = config.Size or defaultSize
     local originalSize = size
+    local isMinimized = false
     
     local frame = Instance.new("Frame")
     frame.Size = size
-    frame.Position = UDim2.new(0.5, -size.X.Offset/2, 0.5, -size.Y.Offset/2)
+    
+    if isMobileDevice then
+        frame.Position = UDim2.new(0, 10, 0, safeAreaInsets.Y + 10)
+    else
+        frame.Position = UDim2.new(0.5, -size.X.Offset/2, 0.5, -size.Y.Offset/2)
+    end
+    
     frame.BackgroundColor3 = Theme.Background
     frame.BackgroundTransparency = Theme.BackgroundTransparency
     frame.BorderSizePixel = 0
-    frame.AnchorPoint = Vector2.new(0.5, 0.5)
-    frame.Parent = coreGui
     frame.ClipsDescendants = true
     frame.Active = true
+    frame.Parent = coreGui
     
     local corner = Instance.new("UICorner", frame)
     corner.CornerRadius = UDim.new(0, 12)
 
     local dropShadow = Instance.new("ImageLabel")
-    dropShadow.Size = frame.Size + UDim2.new(0, 30, 0, 30)
+    dropShadow.Size = UDim2.new(1, 30, 1, 30)
     dropShadow.Position = UDim2.new(0.5, 0, 0.5, 0)
     dropShadow.AnchorPoint = Vector2.new(0.5, 0.5)
     dropShadow.Image = "rbxassetid://6014261993"
@@ -188,11 +220,19 @@ function Library:CreateWindow(config)
     
     makeElementDraggable(frame, titleBar)
     
-    local tabsContainer = Instance.new("Frame")
-    tabsContainer.Size = UDim2.new(1, 0, 0, 36)
-    tabsContainer.Position = UDim2.new(0, 0, 0, 4)
+    local tabsContainer = Instance.new("ScrollingFrame")
+    tabsContainer.Size = UDim2.new(1, -10, 0, 36)
+    tabsContainer.Position = UDim2.new(0, 5, 0, 4)
     tabsContainer.BackgroundTransparency = 1
+    tabsContainer.ScrollBarThickness = 2
+    tabsContainer.ScrollingDirection = Enum.ScrollingDirection.X
+    tabsContainer.ScrollBarImageColor3 = Theme.Accent
     tabsContainer.Parent = contentContainer
+    
+    local tabsLayout = Instance.new("UIListLayout")
+    tabsLayout.FillDirection = Enum.FillDirection.Horizontal
+    tabsLayout.Padding = UDim.new(0, 4)
+    tabsLayout.Parent = tabsContainer
     
     local contentArea = Instance.new("Frame")
     contentArea.Size = UDim2.new(1, -16, 1, -50)
@@ -212,14 +252,15 @@ function Library:CreateWindow(config)
     function Library:CreateTab(tabName)
         tabCount = tabCount + 1
         
+        local buttonWidth = isMobileDevice and 80 or 100
+        
         local tabBtn = Instance.new("TextButton")
-        tabBtn.Size = UDim2.new(0, 100, 0, 30)
-        tabBtn.Position = UDim2.new(0, 8 + (tabCount-1)*104, 0, 3)
+        tabBtn.Size = UDim2.new(0, buttonWidth, 0, 30)
         tabBtn.BackgroundColor3 = Theme.Section
         tabBtn.BackgroundTransparency = Theme.SectionTransparency
         tabBtn.Text = tabName
         tabBtn.Font = Enum.Font.Gotham
-        tabBtn.TextSize = 14
+        tabBtn.TextSize = isMobileDevice and 12 or 14
         tabBtn.TextColor3 = Theme.Text
         tabBtn.Parent = tabsContainer
         
@@ -262,6 +303,8 @@ function Library:CreateWindow(config)
             tabFrame.Visible = true
             selectedTab = tabFrame
         end
+        
+        tabsContainer.CanvasSize = UDim2.new(0, tabsLayout.AbsoluteContentSize.X, 0, 0)
 
         local tabAPI = {}
 
@@ -281,7 +324,7 @@ function Library:CreateWindow(config)
             sectionTitle.BackgroundTransparency = 1
             sectionTitle.Text = title
             sectionTitle.Font = Enum.Font.GothamBold
-            sectionTitle.TextSize = 14
+            sectionTitle.TextSize = isMobileDevice and 12 or 14
             sectionTitle.TextColor3 = Theme.SubText
             sectionTitle.Parent = section
             
@@ -305,7 +348,7 @@ function Library:CreateWindow(config)
                 label.BackgroundTransparency = 1
                 label.Text = text
                 label.Font = Enum.Font.Gotham
-                label.TextSize = 14
+                label.TextSize = isMobileDevice and 12 or 14
                 label.TextColor3 = Theme.Text
                 label.TextXAlignment = Enum.TextXAlignment.Left
                 label.Parent = itemContainer
@@ -320,12 +363,12 @@ function Library:CreateWindow(config)
 
             function sectionAPI:AddButton(text, callback)
                 local btn = Instance.new("TextButton")
-                btn.Size = UDim2.new(1, 0, 0, 28)
+                btn.Size = UDim2.new(1, 0, 0, isMobileDevice and 32 or 28)
                 btn.BackgroundColor3 = Theme.Accent
                 btn.BackgroundTransparency = 0.2
                 btn.Text = text
                 btn.Font = Enum.Font.Gotham
-                btn.TextSize = 14
+                btn.TextSize = isMobileDevice and 12 or 14
                 btn.TextColor3 = Theme.Text
                 btn.Parent = itemContainer
                 
@@ -356,7 +399,7 @@ function Library:CreateWindow(config)
                 local toggleValue = default or false
                 
                 local toggleContainer = Instance.new("Frame")
-                toggleContainer.Size = UDim2.new(1, 0, 0, 30)
+                toggleContainer.Size = UDim2.new(1, 0, 0, isMobileDevice and 34 or 30)
                 toggleContainer.BackgroundTransparency = 1
                 toggleContainer.Parent = itemContainer
                 
@@ -365,7 +408,7 @@ function Library:CreateWindow(config)
                 toggleLabel.BackgroundTransparency = 1
                 toggleLabel.Text = text
                 toggleLabel.Font = Enum.Font.Gotham
-                toggleLabel.TextSize = 14
+                toggleLabel.TextSize = isMobileDevice and 12 or 14
                 toggleLabel.TextColor3 = Theme.Text
                 toggleLabel.TextXAlignment = Enum.TextXAlignment.Left
                 toggleLabel.Parent = toggleContainer
@@ -436,7 +479,7 @@ function Library:CreateWindow(config)
                 precision = precision or 1
                 
                 local sliderContainer = Instance.new("Frame")
-                sliderContainer.Size = UDim2.new(1, 0, 0, 50)
+                sliderContainer.Size = UDim2.new(1, 0, 0, isMobileDevice and 55 or 50)
                 sliderContainer.BackgroundTransparency = 1
                 sliderContainer.Parent = itemContainer
                 
@@ -445,7 +488,7 @@ function Library:CreateWindow(config)
                 sliderLabel.BackgroundTransparency = 1
                 sliderLabel.Text = text
                 sliderLabel.Font = Enum.Font.Gotham
-                sliderLabel.TextSize = 14
+                sliderLabel.TextSize = isMobileDevice and 12 or 14
                 sliderLabel.TextColor3 = Theme.Text
                 sliderLabel.TextXAlignment = Enum.TextXAlignment.Left
                 sliderLabel.Parent = sliderContainer
@@ -456,12 +499,12 @@ function Library:CreateWindow(config)
                 valueLabel.BackgroundTransparency = 1
                 valueLabel.Text = tostring(sliderValue)
                 valueLabel.Font = Enum.Font.GothamBold
-                valueLabel.TextSize = 14
+                valueLabel.TextSize = isMobileDevice and 12 or 14
                 valueLabel.TextColor3 = Theme.Text
                 valueLabel.Parent = sliderContainer
                 
                 local sliderBg = Instance.new("Frame")
-                sliderBg.Size = UDim2.new(1, 0, 0, 10)
+                sliderBg.Size = UDim2.new(1, 0, 0, isMobileDevice and 12 or 10)
                 sliderBg.Position = UDim2.new(0, 0, 0, 30)
                 sliderBg.BackgroundColor3 = Theme.Slider.Background
                 sliderBg.BackgroundTransparency = 0.2
@@ -505,24 +548,36 @@ function Library:CreateWindow(config)
                 
                 local dragging = false
                 
-                sliderBtn.MouseButton1Down:Connect(function()
-                    dragging = true
+                sliderBtn.InputBegan:Connect(function(input)
+                    if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
+                        dragging = true
+                        
+                        local inputPosition = input.Position.X
+                        local sliderPosition = sliderBg.AbsolutePosition.X
+                        local sliderSize = sliderBg.AbsoluteSize.X
+                        
+                        local relativePos = math.clamp(inputPosition - sliderPosition, 0, sliderSize)
+                        local percent = relativePos / sliderSize
+                        
+                        local value = minVal + (maxVal - minVal) * percent
+                        updateSlider(value)
+                    end
                 end)
                 
                 UserInputService.InputEnded:Connect(function(input)
-                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
                         dragging = false
                     end
                 end)
                 
                 UserInputService.InputChanged:Connect(function(input)
-                    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-                        local mousePos = UserInputService:GetMouseLocation().X
-                        local sliderPos = sliderBg.AbsolutePosition.X
-                        local sliderWidth = sliderBg.AbsoluteSize.X
+                    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+                        local inputPosition = input.Position.X
+                        local sliderPosition = sliderBg.AbsolutePosition.X
+                        local sliderSize = sliderBg.AbsoluteSize.X
                         
-                        local relativePos = math.clamp(mousePos - sliderPos, 0, sliderWidth)
-                        local percent = relativePos / sliderWidth
+                        local relativePos = math.clamp(inputPosition - sliderPosition, 0, sliderSize)
+                        local percent = relativePos / sliderSize
                         
                         local value = minVal + (maxVal - minVal) * percent
                         updateSlider(value)

@@ -1,6 +1,6 @@
 ## Load Library
 ```lua
-local SparrLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/javasparrow1/roblox-script/refs/heads/main/sparrows-ui.lua"))()
+local SparrLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/javasparrow1/roblox-script/refs/heads/main/ui/sparrows-ui.lua"))()
 ```
 
 ## Creating a Window

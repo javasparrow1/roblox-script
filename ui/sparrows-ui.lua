@@ -30,7 +30,7 @@ local coreGui = nil
 local function ensureCoreGui()
     if not coreGui then
         coreGui = Instance.new("ScreenGui")
-        coreGui.Name = "OrionUILibraryCoreGui"
+        coreGui.Name = "SparrowUILibraryCoreGui"
         coreGui.ResetOnSpawn = false
         coreGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
         coreGui.Parent = game:GetService("CoreGui")
@@ -78,7 +78,7 @@ function Library:CreateWindow(config)
     ensureCoreGui()
 
     config = config or {}
-    local title = config.Title or "Orion UI"
+    local title = config.Title or "Sparrow UI"
     local size = config.Size or UDim2.new(0, 400, 0, 320)
     
     local isMinimized = false

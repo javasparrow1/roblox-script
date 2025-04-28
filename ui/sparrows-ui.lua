@@ -310,11 +310,16 @@ function Library:CreateWindow(config)
 
         function tabAPI:AddSection(title)
             local section = Instance.new("Frame")
-            section.Size = UDim2.new(1, -10, 0, 100)
+            section.Size = UDim2.new(1, -10, 0, 0)
             section.BackgroundColor3 = Theme.Section
             section.BackgroundTransparency = Theme.SectionTransparency
             section.AutomaticSize = Enum.AutomaticSize.Y
             section.Parent = tabFrame
+
+            local padding = Instance.new("UIPadding")
+            padding.PaddingBottom = UDim.new(0, 10)
+            padding.Parent = section
+            
             
             local sectionCorner = Instance.new("UICorner", section)
             sectionCorner.CornerRadius = UDim.new(0, 8)

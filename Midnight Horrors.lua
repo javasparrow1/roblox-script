@@ -29,7 +29,7 @@ main:Button("Killer esp", function()
     
         local billboard = Instance.new("BillboardGui")
         billboard.Name = "ESP_Label"
-        billboard.Size = UDim2.new(25, 0, 7, 0)  -- 2.5倍に拡大
+        billboard.Size = UDim2.new(25, 0, 7, 0)
         billboard.StudsOffset = Vector3.new(0, 12, 0)
         billboard.AlwaysOnTop = true
         billboard.MaxDistance = 10000

@@ -9,13 +9,13 @@ lobby:Button("Unlock All Plants", function()
         "Chomper",
         "FirePeashooter",
         "KernelPult",
+        "MelonPult",
+        "PotatoMine",
         "CandyPea",
         "ElectricPeashooter",
         "GatlingPea",
         "GiftSunflower",
         "SnowPea",
-        "MelonPult",
-        "PotatoMine",
         "PuffShroom",
         "Repeater",
         "SunShroom",
@@ -41,6 +41,38 @@ lobby:Button("Unlock All Plants", function()
             wait(delay)
         end
     end
+end)
+
+lobby:Button("Member Tag", function()
+    local args = {
+        [1] = "Member"
+    }
+    
+    game:GetService("ReplicatedStorage").Events.RequestPlayerTags:FireServer(unpack(args))
+end)
+
+lobby:Button("SpecialMember Tag", function()
+    local args = {
+        [1] = "SpecialMember"
+    }
+    
+    game:GetService("ReplicatedStorage").Events.RequestPlayerTags:FireServer(unpack(args))
+end)
+
+lobby:Button("VIP Tag", function()
+    local args = {
+        [1] = "VIP"
+    }
+    
+    game:GetService("ReplicatedStorage").Events.RequestPlayerTags:FireServer(unpack(args))
+end)
+
+lobby:Button("Developer Tag", function()
+    local args = {
+        [1] = "Developer"
+    }
+    
+    game:GetService("ReplicatedStorage").Events.RequestPlayerTags:FireServer(unpack(args))
 end)
 
 main:Button("SnowPea Spawn(175)", function()

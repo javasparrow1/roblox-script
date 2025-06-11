@@ -12,7 +12,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local CoreGui = game:GetService("CoreGui")
 
 local actionName = "slash"
-local isVoid = false
+local isVoid = _G.isVoid or true
 local running = false
 local attackThread = nil
 
